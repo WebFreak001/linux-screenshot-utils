@@ -428,10 +428,10 @@ public:
 		int magOffX = radius + 8;
 		int magOffY = radius + 8;
 
-		if (_mx + 8 + radius + radius > _img.getWidth())
+		if (_mx + 8 + radius + radius > _img.getWidth() && _mx > _img.getWidth() / 2)
 			magOffX = -radius - 8;
 
-		if (_my + 8 + radius + radius > _img.getHeight())
+		if (_my + 8 + radius + radius > _img.getHeight() && _my > _img.getHeight() / 2)
 			magOffY = -radius - 8;
 
 		context.arc(_mx + magOffX, _my + magOffY, radius, 0, 6.28318530718f);
