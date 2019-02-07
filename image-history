@@ -1,0 +1,33 @@
+#!/bin/bash
+
+case "$1" in
+"push")
+	file="$2"
+	if [ -z $file ]; then
+		echo "Please provide a file argument."
+		exit 1
+	fi
+
+	if [ ! -f $file ]; then
+		echo "File $file does not exist."
+		exit 1
+	fi
+
+	filename=$(basename -- "$file")
+	dir="$HOME"/screenshots/`date +%Y-%m`
+	out="$dir"/`date +%Y-%m-%d_%H-%M-%S`-"$filename"
+
+	mkdir -p "$dir"
+	cp "$file" "$out"
+	echo "$out"
+	;;
+"list")
+	ls -l ~/screenshots/*-*/
+	;;
+*)
+	echo "Usage:"
+	echo "  $0 list"
+	echo "  $0 push [path]"
+	exit 1
+	;;
+esac

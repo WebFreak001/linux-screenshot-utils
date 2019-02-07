@@ -1,0 +1,8 @@
+{
+	"name": "capture",
+	"dependencies":
+	{
+		"gtk-d:gtkd": "~>3.8.5",
+		"x11": "~>1.0.21"
+	}
+}

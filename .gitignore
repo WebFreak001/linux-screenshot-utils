@@ -1,0 +1,9 @@
+.dub
+docs.json
+__dummy.html
+dub.selections.json
+*.o
+*.obj
+bin/
+out.png
+/capture/capture
