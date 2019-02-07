@@ -49,6 +49,7 @@ class Selection : MainWindow
 		addOnButtonRelease(&preview.onButtonRelease);
 		addOnKeyRelease(&preview.onButtonRelease);
 		addOnMotionNotify(&preview.onMouseMove);
+		addOnScroll(&preview.onScroll);
 		showAll();
 
 		initWindow(pixbuf.getWidth(), pixbuf.getHeight());
@@ -118,7 +119,7 @@ private:
 	int _mx, _my;
 	int _startX, _startY;
 	int _time = 0;
-	int _radius = 100;
+	int _radius = 120;
 	SelectionEvent _onSelected;
 	Region[] _objects;
 	bool stop = false;
@@ -318,6 +319,20 @@ public:
 		if (event.getCoords(x, y))
 		{
 			moveMouse(x, y);
+			return true;
+		}
+		return false;
+	}
+
+	bool onScroll(Event event, Widget widget)
+	{
+		GdkScrollDirection direction;
+		if (event.getScrollDirection(direction))
+		{
+			if (direction == GdkScrollDirection.UP && _radius < 500)
+				_radius += 5;
+			else if (direction == GdkScrollDirection.DOWN && _radius > 50)
+				_radius -= 5;
 			return true;
 		}
 		return false;
