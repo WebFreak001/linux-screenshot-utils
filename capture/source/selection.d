@@ -5,6 +5,7 @@ import cairo.Context;
 import cairo.ImageSurface;
 import cairo.Pattern;
 
+import gtk.Clipboard;
 import gtk.DrawingArea;
 import gtk.Main;
 import gtk.MainWindow;
@@ -19,8 +20,9 @@ import gdk.Screen;
 import gdk.Seat;
 import gdk.Window : GdkWindow = Window;
 
-import std.string;
+import std.format;
 import std.math;
+import std.string;
 
 import core.thread;
 
@@ -124,6 +126,8 @@ private:
 	Region[] _objects;
 	bool stop = false;
 	bool _success = false;
+	uint _lastColor;
+	string _colorString;
 
 public:
 	this(Pixbuf buf, Window window, bool objects)
@@ -227,7 +231,7 @@ public:
 					_regions.removeTiny();
 				}
 			}
-			return false;
+			return true;
 		}
 		ushort key;
 		if (event.getKeycode(key))
@@ -237,12 +241,26 @@ public:
 				stop = true;
 				_window.close();
 				Main.quit();
+				return true;
 			}
 			if (key == 36) // Return
+			{
 				finish();
-			return false;
+				return true;
+			}
+
+			GdkModifierType state;
+			if (event.getState(state))
+			{
+				if ((state & GdkModifierType.CONTROL_MASK) != 0 && key == 54) // c
+				{
+					Clipboard.get(null).setText(_colorString, cast(int) _colorString.length);
+					return true;
+				}
+			}
+
 		}
-		return true;
+		return false;
 	}
 
 	bool onButtonPress(Event event, Widget widget)
@@ -428,6 +446,16 @@ public:
 		int magOffX = radius + 8;
 		int magOffY = radius + 8;
 
+		auto color = _img.getColorAt(_mx, _my);
+		if (color != _lastColor)
+		{
+			if ((color >> 24) != 0xFF)
+				_colorString = format!`#%06x%02x`(color & 0xFFFFFF, color >> 24);
+			else
+				_colorString = format!`#%06x`(color & 0xFFFFFF);
+			_lastColor = color;
+		}
+
 		if (_mx + 8 + radius + radius > _img.getWidth() && _mx > _img.getWidth() / 2)
 			magOffX = -radius - 8;
 
@@ -454,6 +482,22 @@ public:
 		context.lineTo(_mx + magOffX, _my + magOffY + radius);
 		context.stroke();
 
+		context.translate(_mx + magOffX - radius, _my + magOffY + radius);
+		context.setSourceRgb(((_lastColor >> 16) & 0xFF) / 255.0,
+				((_lastColor >> 8) & 0xFF) / 255.0, (_lastColor & 0xFF) / 255.0);
+		context.rectangle(0, -20, 20, 20);
+		context.fill();
+		context.translate(25, 0);
+		context.setSourceRgb(0, 0, 0);
+		context.setFontSize(20);
+		context.showText(_colorString);
+		context.fill();
+		context.setSourceRgb(1, 1, 1);
+		context.translate(-1, -1);
+		context.showText(_colorString);
+		context.fill();
+		context.identityMatrix();
+
 		_time++;
 		if (!stop)
 			this.queueDraw();
@@ -479,4 +523,27 @@ public:
 	{
 		return _success;
 	}
+}
+
+uint getColorAt(Pixbuf pixbuf, int x, int y)
+{
+	if (x < 0 || y < 0)
+		return 0;
+	int w = pixbuf.getWidth();
+	int h = pixbuf.getHeight();
+	if (x >= w || y >= h)
+		return 0;
+
+	int n = pixbuf.getNChannels();
+
+	auto pixels = pixbuf.getPixelsWithLength();
+	pixels = pixels[pixbuf.getRowstride() * y + x * n .. $];
+	pixels = pixels[0 .. n];
+
+	if (n == 3)
+		return 0xFF000000U | (pixels[0] << 16) | (pixels[1] << 8) | pixels[2];
+	else if (n == 4)
+		return (pixels[3] << 24) | (pixels[0] << 16) | (pixels[1] << 8) | pixels[2];
+	else
+		return 0;
 }
