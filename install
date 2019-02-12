@@ -1,0 +1,12 @@
+#!/bin/bash
+set -e
+
+ldc2 --version > /dev/null 2>&1 && dub build --root=capture --compiler=ldc2 --build=release || (echo "LDC is recommended for building a faster and smaller binary!"; dub build --root=capture)
+strip capture/capture
+
+sudo cp capture/capture /usr/bin/image-capture
+sudo ln -s /usr/bin/image-capture /usr/bin/capture-region
+sudo ln -s /usr/bin/image-capture /usr/bin/capture-objects
+sudo ln -s /usr/bin/image-capture /usr/bin/capture-fullscreen
+sudo ln -s /usr/bin/image-capture /usr/bin/capture-window
+
