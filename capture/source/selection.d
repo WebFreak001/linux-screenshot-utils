@@ -20,6 +20,8 @@ import gdk.Screen;
 import gdk.Seat;
 import gdk.Window : GdkWindow = Window;
 
+import glib.Timeout;
+
 import std.format;
 import std.math;
 import std.string;
@@ -54,6 +56,8 @@ class Selection : MainWindow
 		addOnScroll(&preview.onScroll);
 		showAll();
 
+		new Timeout(500, &timer);
+
 		initWindow(pixbuf.getWidth(), pixbuf.getHeight());
 	}
 
@@ -76,13 +80,27 @@ class Selection : MainWindow
 			gdkwin.setSkipPagerHint(true);
 			gdkwin.setSkipTaskbarHint(true);
 
-			Seat seat = gdkwin.getDisplay().getDefaultSeat();
-			seat.grab(gdkwin, GdkSeatCapabilities.ALL, false, null, null, null, null);
-			Screen screen;
-			double x, y;
-			seat.getPointer().getPositionDouble(screen, x, y);
-			preview.moveMouse(x, y);
+			grab();
 		}
+	}
+
+	private bool timer()
+	{
+		grab();
+		return true;
+	}
+
+	void grab()
+	{
+		GdkWindow gdkwin = getWindow();
+		assert(gdkwin);
+
+		Seat seat = gdkwin.getDisplay().getDefaultSeat();
+		seat.grab(gdkwin, GdkSeatCapabilities.ALL, false, null, null, null, null);
+		Screen screen;
+		double x, y;
+		seat.getPointer().getPositionDouble(screen, x, y);
+		preview.moveMouse(x, y);
 	}
 
 	@property ref auto onSelected()
