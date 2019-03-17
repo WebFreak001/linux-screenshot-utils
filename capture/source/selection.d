@@ -391,8 +391,8 @@ public:
 			}
 			else
 			{
-				_regions[_selectedRegion].w = rx - _regions[_selectedRegion].x;
-				_regions[_selectedRegion].h = ry - _regions[_selectedRegion].y;
+				_regions[_selectedRegion].w = rx - _regions[_selectedRegion].x + 1;
+				_regions[_selectedRegion].h = ry - _regions[_selectedRegion].y + 1;
 			}
 		}
 	}
@@ -492,12 +492,20 @@ public:
 		context.setSourceRgb(1, 1, 1);
 		context.setDash([scale, scale], magOffX);
 
-		context.moveTo(_mx + magOffX - radius, _my + magOffY);
-		context.lineTo(_mx + magOffX + radius, _my + magOffY);
+		context.moveTo(_mx + magOffX - radius, _my + magOffY + (_lmb ? scale : 0));
+		context.lineTo(_mx + magOffX + radius, _my + magOffY + (_lmb ? scale : 0));
 		context.stroke();
 
-		context.moveTo(_mx + magOffX, _my + magOffY - radius);
-		context.lineTo(_mx + magOffX, _my + magOffY + radius);
+		context.moveTo(_mx + magOffX + (_lmb ? scale : 0), _my + magOffY - radius);
+		context.lineTo(_mx + magOffX + (_lmb ? scale : 0), _my + magOffY + radius);
+		context.stroke();
+
+		context.setDash([2, 2], magOffX);
+		context.moveTo(_mx + magOffX, _my + magOffY);
+		context.lineTo(_mx + magOffX + scale, _my + magOffY);
+		context.lineTo(_mx + magOffX + scale, _my + magOffY + scale);
+		context.lineTo(_mx + magOffX, _my + magOffY + scale);
+		context.lineTo(_mx + magOffX, _my + magOffY);
 		context.stroke();
 
 		context.translate(_mx + magOffX - radius, _my + magOffY + radius);
